@@ -1,119 +1,148 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
+  <div class="q-pa-md">
+    <q-layout view="hHh Lpr lff">
+      <q-header elevated>
+        <q-toolbar>
+          <q-btn flat @click="drawer = !drawer" round dense icon="menu" v-if="isAuthenticated" />
+          <q-toolbar-title>{{ isAuthenticated ? user.email : "Chat" }}</q-toolbar-title>
+           <q-btn push color="white" text-color="primary" round icon="logout" v-if="isAuthenticated" @click="logout"/>
+        </q-toolbar>
+      </q-header>
 
-        <q-toolbar-title>
-          Chat App
-        </q-toolbar-title>
+      <q-drawer
+        v-model="drawer"
+        v-if="isAuthenticated"
+        show-if-above
 
-       <q-btn push color="white" text-color="primary" round icon="logout" />
-      </q-toolbar>
-    </q-header>
+        :mini="!drawer || miniState"
+        @click.capture="drawerClick"
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-      class="bg-grey-1"
-    >
-      <q-list>
-        <q-item-label
-          header
-          class="text-grey-8"
-        >
-          Essential Links
-        </q-item-label>
+        :width="200"
+        :breakpoint="500"
+        bordered
+        class="bg-grey-3"
+      >
+        <template v-slot:mini>
+          <q-scroll-area class="fit mini-slot cursor-pointer">
+            <div class="q-py-lg">
+              <div class="column items-center">
+                <q-icon name="inbox" color="blue" class="mini-icon" />
+                <q-icon name="star" color="orange" class="mini-icon" />
+                <q-icon name="send" color="purple" class="mini-icon" />
+                <q-icon name="drafts" color="teal" class="mini-icon" />
+              </div>
+            </div>
+          </q-scroll-area>
+        </template>
 
-        <EssentialLink
-          v-for="link in essentialLinks"
-          :key="link.title"
-          v-bind="link"
-        />
-      </q-list>
-    </q-drawer>
+        <q-scroll-area class="fit">
+          <q-list padding>
+            <q-item clickable v-ripple>
+              <q-item-section>
+                Inbox
+              </q-item-section>
+            </q-item>
 
-    <q-page-container>
-      <router-view />
-    </q-page-container>
-  </q-layout>
+            <q-item active clickable v-ripple>
+              <q-item-section>
+                Star
+              </q-item-section>
+            </q-item>
+
+            <q-item clickable v-ripple>
+              <q-item-section>
+                Send
+              </q-item-section>
+            </q-item>
+
+            <q-item clickable v-ripple>
+              <q-item-section>
+                Drafts
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-scroll-area>
+
+        <!--
+          in this case, we use a button (can be anything)
+          so that user can switch back
+          to mini-mode
+        -->
+        <div class="q-mini-drawer-hide absolute" style="top: 15px; right: -17px">
+          <q-btn
+            dense
+            round
+            unelevated
+            color="accent"
+            icon="chevron_left"
+            @click="miniState = true"
+          />
+        </div>
+      </q-drawer>
+
+      <q-page-container>
+   <router-view />
+      </q-page-container>
+    </q-layout>
+  </div>
 </template>
 
 <script>
-import EssentialLink from 'components/EssentialLink.vue'
+import { ref } from 'vue'
+import {auth,db} from '../boot/firebase'
+import {useAuth} from '@vueuse/firebase/useAuth'
 
-const linksList = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
-  }
-];
-
-import { defineComponent, ref } from 'vue'
-
-export default defineComponent({
-  name: 'MainLayout',
-
-  components: {
-    EssentialLink
-  },
-
+export default {
   setup () {
-    const leftDrawerOpen = ref(false)
+    //const {user,isAuthenticated} = useAuth();
+    const miniState = ref(true);
+    const { user, isAuthenticated } = useAuth(auth);
 
+    const logout = async () => {
+      try {
+        await db.collection("users").doc(user.value.uid).update({
+          condition: false,
+        });
+        await auth.signOut();
+      } catch (error) {
+        console.log(error);
+      }
+    };
     return {
-      essentialLinks: linksList,
-      leftDrawerOpen,
-      toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
+      
+      drawer: ref(false),
+      miniState,
+      user,
+      isAuthenticated,
+      logout,
+      
+
+      drawerClick (e) {
+        // if in "mini" state and user
+        // click on drawer, we switch it to "normal" mode
+        if (miniState.value) {
+          miniState.value = false
+
+          // notice we have registered an event with capture flag;
+          // we need to stop further propagation as this click is
+          // intended for switching drawer to "normal" mode only
+          e.stopPropagation()
+        }
       }
     }
   }
-})
+}
 </script>
+
+<style lang="sass" scoped>
+.mini-slot
+  transition: background-color .28s
+  &:hover
+    background-color: rgba(0, 0, 0, .04)
+
+.mini-icon
+  font-size: 1.718em
+
+  & + &
+    margin-top: 18px
+</style>

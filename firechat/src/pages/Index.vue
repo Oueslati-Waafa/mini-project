@@ -1,17 +1,27 @@
 <template>
-  <q-page class="flex flex-center">
-    <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
-    >
+  <q-page padding>
+   <viewAccess v v-if="!isAuthenticated" />
   </q-page>
 </template>
 
 <script>
-import { defineComponent } from 'vue';
+import viewAccess from '../components/ViewAccess'
+import {auth} from '../boot/firebase'
+import {useAuth} from '@vueuse/firebase/useAuth'
 
-export default defineComponent({
-  name: 'PageIndex'
-})
+export default {
+  
+    components:{viewAccess},
+    setup()
+    {
+      const { user, isAuthenticated } = useAuth(auth);
+      return{
+        isAuthenticated,
+        
+      }
+
+    }
+    
+
+}
 </script>
