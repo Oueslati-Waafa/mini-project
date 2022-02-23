@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-   <viewAccess v v-if="!isAuthenticated" />
+   <viewAccess v-if="!isAuthenticated" /> 
   </q-page>
 </template>
 

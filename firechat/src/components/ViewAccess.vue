@@ -15,7 +15,6 @@
 <script>
 import {ref} from 'vue'
 import {auth,db} from '../boot/firebase'
-
 import {useAuth} from '@vueuse/firebase/useAuth'
 export default {
     
@@ -34,20 +33,20 @@ export default {
           try {
               if (!access.value) {
                   //register
-                 const username = await auth.createUserWithEmailAndPassword(email.value , password.value);
-                 await db.collection('users').doc(username.user.uid).set({
-                     email : username.user.email,
+                 const users = await auth.createUserWithEmailAndPassword(email.value , password.value);
+                 await db.collection('users').doc(users.user.uid).set({
+                     email : users.user.email,
                      condition : true,
-                     uid : username.user.uid
+                     uid : users.user.uid
                  })
-                 console.log(username.user)
+                 console.log(users.user)
               } else {
                   //login
-                  const username = await auth.signInWithEmailAndPassword(email.value , password.value);
-                   await db.collection('users').doc(username.user.uid).update({
+                  const users = await auth.signInWithEmailAndPassword(email.value , password.value);
+                   await db.collection('users').doc(users.user.uid).update({
                      condition : true,
                  })
-                  console.log(username.user)
+                  console.log(users.user)
               }
               email.value =""
               password.value =""
