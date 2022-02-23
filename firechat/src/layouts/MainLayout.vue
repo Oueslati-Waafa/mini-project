@@ -1,36 +1,29 @@
 <template>
-  <div class="q-pa-md">
-    <q-layout view="hHh Lpr lff">
-      <q-header elevated>
-        <q-toolbar>
+  <q-layout view="lHh Lpr lFf">
+    <q-header bordered>
+<q-toolbar>
           <q-icon name="account_circle" />
           <q-toolbar-title>{{ isAuthenticated ? user.email : "Chat" }}</q-toolbar-title>
            <q-btn push color="white" text-color="primary" round icon="logout" v-if="isAuthenticated" @click="logout"/>
         </q-toolbar>
-      </q-header>
-      <div v-if="isAuthenticated">
-       <viewActiveUsers />
-       <viewChat/>
-      </div>
-      <q-page-container>
+    </q-header>
+
+    <q-page-container>
       <router-view />
-      </q-page-container>
-    </q-layout>
-  </div>
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script>
-import { ref } from 'vue'
-import {auth,db} from '../boot/firebase'
+import { db, auth } from "boot/firebase";
 import {useAuth} from '@vueuse/firebase/useAuth'
-import viewChat from '../components/ViewChat.vue'
-import viewActiveUsers from '../components/ViewActiveUsers.vue'
 
 export default {
-   components:{viewActiveUsers,viewChat},
-  setup () {
-    //const {user,isAuthenticated} = useAuth();
-    
+  name: "MainLayout",
+
+  components: {},
+
+  setup() {
     const { user, isAuthenticated } = useAuth(auth);
 
     const logout = async () => {
@@ -43,14 +36,12 @@ export default {
         console.log(error);
       }
     };
+
     return {
-      
       user,
       isAuthenticated,
       logout,
-    }
-  }
-}
+    };
+  },
+};
 </script>
-
-

@@ -1,14 +1,16 @@
 <template>
-    <div class="q-px-xl">
+    <div class="q-px-xl fixed-center" style="max-width: 600px">
         <h5>Formulaire de {{ access ? "Login" : "Inscription" }}</h5>
 
         <q-form class="q-gutter-md" @submit.prevent="processForm">
-         <q-input label="Email" v-model="email"/>
-         <q-input label="Password" v-model="password"/>
+         <q-input label="Email" v-model="email" outlined />
+         <q-input label="Password" v-model="password" type="password" outlined />
          <q-btn :label="access ? 'Login' : 'Register'" type="submit" color="primary"></q-btn>
          <q-btn color="primary" v-if="!access" @click="access = true" outline>Vous avez déjà un compte?</q-btn>
          <q-btn color="negative" v-else @click="access = false" outline>Vous n'avez pas un compte?</q-btn>
         </q-form>
+
+        
     </div>
 </template>
 
@@ -19,10 +21,11 @@ import {useAuth} from '@vueuse/firebase/useAuth'
 export default {
     
     setup() {
-       const email = ref('user@gmail.com') ;
-       const password = ref('123123') ;
+       const email = ref('') ;
+       const password = ref('') ;
        const access = ref(true);
        const { isAuthenticated, user } = useAuth(auth)
+       
        const processForm = async() =>
        {
            if (!email.value.trim() || !password.value.trim()) 
@@ -63,6 +66,7 @@ export default {
            isAuthenticated,
            user
        }
+       
     },
 }
 </script>
