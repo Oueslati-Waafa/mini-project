@@ -9,7 +9,6 @@
          <q-btn color="primary" v-if="!access" @click="access = true" outline>Vous avez déjà un compte?</q-btn>
          <q-btn color="negative" v-else @click="access = false" outline>Vous n'avez pas un compte?</q-btn>
         </q-form>
-
         
     </div>
 </template>
@@ -18,6 +17,7 @@
 import {ref} from 'vue'
 import {auth,db} from '../boot/firebase'
 import {useAuth} from '@vueuse/firebase/useAuth'
+import useNotify from '../utilities/UseNotify'
 export default {
     
     setup() {
@@ -25,12 +25,12 @@ export default {
        const password = ref('') ;
        const access = ref(true);
        const { isAuthenticated, user } = useAuth(auth)
-       
+       const { notifyError,notifySuccess } = useNotify() 
        const processForm = async() =>
        {
            if (!email.value.trim() || !password.value.trim()) 
           {
-            console.log("empty fields");
+            notifyError("Les champs sont vides")
             return;
           }
           try {
@@ -43,6 +43,7 @@ export default {
                      uid : users.user.uid
                  })
                  console.log(users.user)
+                 notifySuccess('Login successfully')
               } else {
                   //login
                   const users = await auth.signInWithEmailAndPassword(email.value , password.value);
@@ -50,12 +51,13 @@ export default {
                      condition : true,
                  })
                   console.log(users.user)
+                   notifySuccess('Bienvenu !')
               }
               email.value =""
               password.value =""
               
           } catch (error) {
-              console.log(error)
+              notifyError(error.message)
           }
        }
        return{
@@ -66,7 +68,6 @@ export default {
            isAuthenticated,
            user
        }
-       
     },
 }
 </script>
